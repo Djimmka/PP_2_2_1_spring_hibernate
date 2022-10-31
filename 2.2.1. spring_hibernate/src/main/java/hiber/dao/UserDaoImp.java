@@ -3,6 +3,7 @@ package hiber.dao;
 import hiber.model.Car;
 import hiber.model.User;
 import org.hibernate.SessionFactory;
+import org.hibernate.TransactionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -32,14 +33,26 @@ public class UserDaoImp implements UserDao {
 
    @Override
    public User getUserByCar(Car car) {
-      CriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
-      CriteriaQuery<User> criteriaQuery = criteriaBuilder.createQuery(User.class);
-      Root<User> userRoot = criteriaQuery.from(User.class);
-      User queryResult = sessionFactory.openSession().createQuery(criteriaQuery.select(userRoot)
-                      .where(criteriaBuilder.equal(userRoot.get("car"), car)))
-              .getSingleResult();
-      return queryResult;
+      try {
+         CriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
+         CriteriaQuery<Car> ctq = criteriaBuilder.createQuery(Car.class);
+         Root<Car> carRoot = ctq.from(Car.class);
+         Car qresult = sessionFactory.openSession().createQuery(ctq.select(carRoot)
+                         .where(criteriaBuilder.equal(carRoot.get("model"), car.getModel()), criteriaBuilder.equal(carRoot.get("series"), car.getSeries())))
+                 .getSingleResult();
 
+
+         CriteriaQuery<User> criteriaQuery = criteriaBuilder.createQuery(User.class);
+         Root<User> userRoot = criteriaQuery.from(User.class);
+         User queryResult = sessionFactory.openSession().createQuery(criteriaQuery.select(userRoot)
+                         .where(criteriaBuilder.equal(userRoot.get("car"),qresult)))
+                 .getSingleResult();
+         return queryResult;
+      } catch (TransactionException e) {
+         System.out.println("cant get user by car");
+         e.printStackTrace();
+      }
+      return null;
    }
 
 }
