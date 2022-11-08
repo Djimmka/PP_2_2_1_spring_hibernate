@@ -37,8 +37,11 @@ public class UserDaoImp implements UserDao {
    @Override
    public User getUserByCar(Car car) {
       try {
-         String HQL = "FROM User user INNER JOIN FETCH user.car WHERE (user.car.model = :carModel and user.car.series = :carSeries) ";
-         Query<User> query = sessionFactory.openSession().createQuery(HQL, User.class).setParameter("carModel", car.getModel()).setParameter("carSeries", car.getSeries());
+         String HQL = "FROM User user INNER JOIN FETCH user.car " +
+                 "WHERE (user.car.model = :carModel and user.car.series = :carSeries) ";
+         Query<User> query = sessionFactory.openSession().createQuery(HQL, User.class)
+                 .setParameter("carModel", car.getModel())
+                 .setParameter("carSeries", car.getSeries());
          return query.getSingleResult();
 
       } catch (TransactionException e) {
