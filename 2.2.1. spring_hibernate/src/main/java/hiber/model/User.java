@@ -1,10 +1,11 @@
 package hiber.model;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
 
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,9 +19,7 @@ public class User {
 
    @Column(name = "email")
    private String email;
-
-   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-   @JoinColumn(name = "car_id")
+   @OneToOne
    private Car car;
 
    public User() {}

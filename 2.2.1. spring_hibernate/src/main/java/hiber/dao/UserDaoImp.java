@@ -4,6 +4,7 @@ import hiber.model.Car;
 import hiber.model.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.TransactionException;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -27,27 +28,19 @@ public class UserDaoImp implements UserDao {
    @Override
    @SuppressWarnings("unchecked")
    public List<User> listUsers() {
-      TypedQuery<User> query=sessionFactory.getCurrentSession().createQuery("from User");
+      TypedQuery<User> query = sessionFactory.getCurrentSession().createQuery("from User");
       return query.getResultList();
    }
+
+
 
    @Override
    public User getUserByCar(Car car) {
       try {
-         CriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
-         CriteriaQuery<Car> ctq = criteriaBuilder.createQuery(Car.class);
-         Root<Car> carRoot = ctq.from(Car.class);
-         Car qresult = sessionFactory.openSession().createQuery(ctq.select(carRoot)
-                         .where(criteriaBuilder.equal(carRoot.get("model"), car.getModel()), criteriaBuilder.equal(carRoot.get("series"), car.getSeries())))
-                 .getSingleResult();
+         String HQL = "FROM User user INNER JOIN FETCH user.car WHERE (user.car.model = :carModel and user.car.series = :carSeries) ";
+         Query<User> query = sessionFactory.openSession().createQuery(HQL, User.class).setParameter("carModel", car.getModel()).setParameter("carSeries", car.getSeries());
+         return query.getSingleResult();
 
-
-         CriteriaQuery<User> criteriaQuery = criteriaBuilder.createQuery(User.class);
-         Root<User> userRoot = criteriaQuery.from(User.class);
-         User queryResult = sessionFactory.openSession().createQuery(criteriaQuery.select(userRoot)
-                         .where(criteriaBuilder.equal(userRoot.get("car"),qresult)))
-                 .getSingleResult();
-         return queryResult;
       } catch (TransactionException e) {
          System.out.println("cant get user by car");
          e.printStackTrace();
